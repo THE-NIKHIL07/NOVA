@@ -28,24 +28,46 @@ class LLMService:
         else:
             context_text = "No external web sources found."
 
-        full_prompt = f"""
-        You are Nova, an elite, highly intelligent AI assistant specializing in coding, mathematics, logical reasoning, and general knowledge.
+        query_lower = query.lower()
+        coding_keywords = [
+            "code", "python", "flutter", "dart", "java", "c++", "cpp", "js", "javascript",
+            "html", "css", "sql", "algorithm", "program", "function", "script", "class",
+            "write a", "implement", "debug", "error", "syntax", "array", "list", "sort", "quicksort"
+        ]
+        is_coding = any(kw in query_lower for kw in coding_keywords)
 
-        Context from web search:
-        {context_text}
+        if is_coding:
+            full_prompt = f"""
+            You are Nova, an expert AI software engineer and computer scientist.
 
-        User Query:
-        {query}
+            User Query:
+            {query}
 
-        Instructions:
-        - For CODING queries (Python, Flutter, C++, Java, JavaScript, HTML/CSS, SQL, algorithms, etc.):
-          Provide complete, production-ready, fully functional code inside markdown code blocks with language identifiers (e.g. ```python ... ``` or ```dart ... ```). Explain how the code works clearly. Do NOT truncate code or rely solely on web search snippets.
-        - For MATH / REASONING queries:
-          Work through the problem step-by-step with clear logical explanation and clear final answers.
-        - For GENERAL / SEARCH queries:
-          Use web search context when relevant to enrich your answer and cite sources naturally.
-        - NEVER refuse to answer or state that you lack web search context. Use your own internal AI intelligence to provide an accurate, high-quality solution.
-        """
+            Context from web search (use only as reference if helpful):
+            {context_text}
+
+            Instructions:
+            - Write complete, fully functional, production-ready code.
+            - Always format code inside markdown code blocks specifying the exact language identifier (e.g. ```python, ```dart, ```cpp, ```javascript, ```sql, ```html).
+            - Do NOT truncate code or use lazy comments like "# logic goes here". Provide full working solutions.
+            - Provide a clear, concise explanation of how the code works after the code block.
+            """
+        else:
+            full_prompt = f"""
+            You are Nova, an intelligent AI assistant.
+
+            Context from web search:
+            {context_text}
+
+            User Query:
+            {query}
+
+            Instructions:
+            - Directly and comprehensively answer what the user is asking.
+            - If web search context is available and relevant, use it to enrich your answer and cite relevant sources naturally.
+            - If math or reasoning query, work through step-by-step logically.
+            - Never state that you cannot answer due to lack of search results.
+            """
 
         try:
             response = await client.chat.completions.create(
@@ -53,7 +75,7 @@ class LLMService:
                 messages=[
                     {
                         "role": "system",
-                        "content": "You are Nova, an elite AI assistant skilled in coding, math reasoning, algorithms, and general intelligence. Provide direct, complete, and perfectly formatted answers."
+                        "content": "You are Nova, an expert AI assistant specializing in software engineering, coding, math reasoning, and general intelligence. Provide direct, complete, fully working code blocks and accurate answers."
                     },
                     {
                         "role": "user",
@@ -75,7 +97,7 @@ class LLMService:
                     messages=[
                         {
                             "role": "system",
-                            "content": "You are Nova, an intelligent AI assistant."
+                            "content": "You are Nova, an expert AI software engineer and assistant."
                         },
                         {
                             "role": "user",
