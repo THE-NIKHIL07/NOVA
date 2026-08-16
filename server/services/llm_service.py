@@ -1,17 +1,15 @@
 from groq import AsyncGroq
 from config import Settings
 
-settings = Settings()
-
 
 class LLMService:
-    def __init__(self):
+    def get_client(self):
+        settings = Settings()
         api_key = settings.GROQ_API_KEY.strip(' "\'\n\r\t')
-        self.client = AsyncGroq(
-            api_key=api_key
-        )
+        return AsyncGroq(api_key=api_key)
 
     async def generate_response(self, query: str, search_results: list[dict]):
+        client = self.get_client()
 
         if search_results:
             context_text = "\n\n".join(
@@ -42,7 +40,7 @@ class LLMService:
         """
 
         try:
-            response = await self.client.chat.completions.create(
+            response = await client.chat.completions.create(
                 model="llama-3.3-70b-versatile",
                 messages=[
                     {
@@ -64,7 +62,7 @@ class LLMService:
         except Exception as e:
             print("Groq primary model error, trying fallback model:", e)
             try:
-                response = await self.client.chat.completions.create(
+                response = await client.chat.completions.create(
                     model="llama-3.1-8b-instant",
                     messages=[
                         {
