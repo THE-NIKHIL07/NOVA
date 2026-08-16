@@ -21,6 +21,16 @@ search_service = SearchService()
 llm_service = LLMService()
 
 
+@app.get("/")
+def read_root():
+    return {
+        "status": "online",
+        "service": "Nova AI Backend Server",
+        "websocket_endpoint": "/ws/chat",
+        "docs": "/docs"
+    }
+
+
 @app.websocket("/ws/chat")
 async def websocket_chat_endpoint(websocket: WebSocket):
     await websocket.accept()
