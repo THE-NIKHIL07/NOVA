@@ -1,0 +1,94 @@
+import 'dart:async';
+import 'dart:convert';
+
+import 'package:flutter/foundation.dart';
+import 'package:web_socket_client/web_socket_client.dart';
+
+class ChatWebService {
+  static final _instance = ChatWebService._internal();
+  WebSocket? _socket;
+  ConnectionState _connectionState = const Disconnected();
+
+  factory ChatWebService() => _instance;
+
+  ChatWebService._internal();
+  final _searchResultController = StreamController<Map<String, dynamic>>.broadcast();
+  final _contentController = StreamController<Map<String, dynamic>>.broadcast();
+  final _queryStartController = StreamController<String>.broadcast();
+
+  Stream<Map<String, dynamic>> get searchResultStream =>
+      _searchResultController.stream;
+  Stream<Map<String, dynamic>> get contentStream => _contentController.stream;
+  Stream<String> get queryStartStream => _queryStartController.stream;
+
+  static String get _wsUrl {
+    if (kIsWeb) {
+      return "ws://localhost:8000/ws/chat";
+    } else {
+      // Global Render backend WebSocket URL for all mobile users worldwide
+      return "wss://nova-chat-backend.onrender.com/ws/chat";
+    }
+  }
+
+  void connect() {
+    if (_socket != null) return;
+    final url = _wsUrl;
+    debugPrint("[ChatWebService] Connecting to $url");
+    _socket = WebSocket(Uri.parse(url), backoff: const ConstantBackoff(Duration(seconds: 1)));
+
+    _socket!.connection.listen((state) {
+      _connectionState = state;
+      debugPrint("[ChatWebService] Connection state changed: $state");
+    });
+
+    _socket!.messages.listen(
+      (message) {
+        try {
+          final data = json.decode(message);
+          if (data['type'] == 'search_result') {
+            debugPrint("[ChatWebService] Received search_result: ${data['data']?.length} sources");
+            _searchResultController.add(data);
+          } else if (data['type'] == 'content') {
+            _contentController.add(data);
+          }
+        } catch (e) {
+          debugPrint("[ChatWebService] JSON decode error: $e");
+        }
+      },
+      onError: (error) {
+        debugPrint("[ChatWebService] WebSocket error: $error");
+      },
+      onDone: () {
+        debugPrint("[ChatWebService] WebSocket done");
+        _socket = null;
+        _connectionState = const Disconnected();
+      },
+    );
+  }
+
+  void chat(String query) {
+    if (_socket == null) {
+      connect();
+    }
+
+    _queryStartController.add(query);
+
+    debugPrint("[ChatWebService] Preparing to send query: $query, current state: $_connectionState");
+
+    void sendPayload() {
+      debugPrint("[ChatWebService] Sending JSON query payload: $query");
+      _socket?.send(json.encode({'query': query}));
+    }
+
+    if (_connectionState is Connected) {
+      sendPayload();
+    } else if (_socket != null) {
+      _socket!.connection.firstWhere((state) => state is Connected).then((_) {
+        sendPayload();
+      }).catchError((err) {
+        debugPrint("[ChatWebService] Error waiting for connection: $err");
+        _socket = null;
+      });
+    }
+  }
+}

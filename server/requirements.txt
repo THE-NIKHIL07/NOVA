@@ -1,0 +1,8 @@
+fastapi
+uvicorn
+groq
+tavily-python
+trafilatura
+pydantic-settings
+python-dotenv
+websockets
