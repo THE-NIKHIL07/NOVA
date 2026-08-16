@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_markdown/flutter_markdown.dart';
 import 'package:nova/models/chat_turn.dart';
 import 'package:nova/theme/colors.dart';
+import 'package:nova/widgets/code_block_widget.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:skeletonizer/skeletonizer.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -162,7 +163,7 @@ class ChatTurnWidget extends StatelessWidget {
             ],
           ),
 
-        // 3. Nova AI Answer Header & Markdown Body (Selectable Text)
+        // 3. Nova AI Answer Header & Markdown Body (Selectable Text & 1-Tap Copy Code Blocks)
         const Text(
           'Nova',
           style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
@@ -182,6 +183,9 @@ class ChatTurnWidget extends StatelessWidget {
               : MarkdownBody(
                   data: turn.answer,
                   selectable: true,
+                  builders: {
+                    'code': CodeElementBuilder(),
+                  },
                   styleSheet: MarkdownStyleSheet.fromTheme(Theme.of(context))
                       .copyWith(
                     codeblockDecoration: BoxDecoration(
@@ -198,7 +202,7 @@ class ChatTurnWidget extends StatelessWidget {
                 ),
         ),
 
-        // 4. Action Buttons (Copy Answer, Share Answer)
+        // 4. Action Buttons (Copy Full Answer, Share Answer)
         if (turn.answer.isNotEmpty) ...[
           const SizedBox(height: 16),
           Row(
