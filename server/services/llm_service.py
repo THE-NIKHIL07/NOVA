@@ -1,3 +1,4 @@
+import os
 from groq import AsyncGroq
 from config import Settings
 
@@ -5,7 +6,12 @@ from config import Settings
 class LLMService:
     def get_client(self):
         settings = Settings()
-        api_key = settings.GROQ_API_KEY.strip(' "\'\n\r\t')
+        api_key = settings.GROQ_API_KEY.strip(' "\'\n\r\t') or os.getenv("GROQ_API_KEY", "").strip(' "\'\n\r\t')
+        
+        if not api_key:
+            print("[LLMService Warning] GROQ_API_KEY is empty in Settings and os.environ!")
+            return AsyncGroq()
+        
         return AsyncGroq(api_key=api_key)
 
     async def generate_response(self, query: str, search_results: list[dict]):
