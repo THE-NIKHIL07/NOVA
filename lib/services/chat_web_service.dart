@@ -25,8 +25,8 @@ class ChatWebService {
     if (kIsWeb) {
       return "ws://localhost:8000/ws/chat";
     } else {
-      // Global Render backend WebSocket URL for all mobile users worldwide
-      return "wss://nova-chat-backend.onrender.com/ws/chat";
+      // Live Render backend WebSocket URL for all mobile users worldwide
+      return "wss://nova-10g6.onrender.com/ws/chat";
     }
   }
 
