@@ -104,26 +104,3 @@ nova/
    flutter build apk --release
    ```
    The generated APK will be placed at `build/app/outputs/flutter-apk/app-release.apk`.
-
----
-
-## 🌐 Deploying Backend on Render.com
-
-1. Push this repository to GitHub.
-2. Go to [Render Dashboard](https://dashboard.render.com) and click **New +** $\rightarrow$ **Web Service**.
-3. Connect your GitHub repository.
-4. Set the build parameters:
-   - **Root Directory**: `server`
-   - **Environment**: `Python 3`
-   - **Build Command**: `pip install -r requirements.txt`
-   - **Start Command**: `uvicorn main:app --host 0.0.0.0 --port $PORT`
-5. Add Environment Variables:
-   - `GROQ_API_KEY`: Your Groq API key
-   - `TAVILY_API_KEY`: Your Tavily API key
-6. Deploy! Render will host your backend and provide a live secure URL (e.g. `https://nova-chat-backend.onrender.com`).
-
----
-
-## 📜 License
-
-Created with ❤️ by **THE-NIKHIL07**.
