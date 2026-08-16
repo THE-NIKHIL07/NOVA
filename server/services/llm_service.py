@@ -6,8 +6,9 @@ settings = Settings()
 
 class LLMService:
     def __init__(self):
+        api_key = settings.GROQ_API_KEY.strip(' "\'\n\r\t')
         self.client = AsyncGroq(
-            api_key=settings.GROQ_API_KEY
+            api_key=api_key
         )
 
     async def generate_response(self, query: str, search_results: list[dict]):
