@@ -89,4 +89,12 @@ class LLMService:
                         yield text
             except Exception as err:
                 print("Groq fallback error:", err)
-                yield f"\n\n*Error generating response: {str(err)}*"
+                if search_results:
+                    yield "Here is the information found for your search query:\n\n"
+                    for i, res in enumerate(search_results[:3]):
+                        title = res.get('title', 'Source')
+                        content = res.get('content', '').strip()
+                        if content:
+                            yield f"### {i+1}. {title}\n{content[:350]}...\n\n"
+                else:
+                    yield "Hello! I am ready to answer your questions. Please ask your question again."

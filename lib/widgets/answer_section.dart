@@ -58,10 +58,8 @@ class _AnswerSectionState extends State<AnswerSection> {
                     borderRadius: BorderRadius.circular(10),
                   ),
                 )
-              : Markdown(
+              : MarkdownBody(
                   data: fullResponse,
-                  shrinkWrap: true,
-                  physics: const NeverScrollableScrollPhysics(),
                   styleSheet: MarkdownStyleSheet.fromTheme(Theme.of(context))
                       .copyWith(
                     codeblockDecoration: BoxDecoration(

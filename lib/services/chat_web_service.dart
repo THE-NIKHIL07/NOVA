@@ -15,11 +15,13 @@ class ChatWebService {
   final _searchResultController = StreamController<Map<String, dynamic>>.broadcast();
   final _contentController = StreamController<Map<String, dynamic>>.broadcast();
   final _queryStartController = StreamController<String>.broadcast();
+  final _isGeneratingController = StreamController<bool>.broadcast();
 
   Stream<Map<String, dynamic>> get searchResultStream =>
       _searchResultController.stream;
   Stream<Map<String, dynamic>> get contentStream => _contentController.stream;
   Stream<String> get queryStartStream => _queryStartController.stream;
+  Stream<bool> get isGeneratingStream => _isGeneratingController.stream;
 
   static String get _wsUrl {
     if (kIsWeb) {
@@ -57,11 +59,13 @@ class ChatWebService {
       },
       onError: (error) {
         debugPrint("[ChatWebService] WebSocket error: $error");
+        _isGeneratingController.add(false);
       },
       onDone: () {
         debugPrint("[ChatWebService] WebSocket done");
         _socket = null;
         _connectionState = const Disconnected();
+        _isGeneratingController.add(false);
       },
     );
   }
@@ -71,6 +75,7 @@ class ChatWebService {
       connect();
     }
 
+    _isGeneratingController.add(true);
     _queryStartController.add(query);
 
     debugPrint("[ChatWebService] Preparing to send query: $query, current state: $_connectionState");
@@ -88,7 +93,24 @@ class ChatWebService {
       }).catchError((err) {
         debugPrint("[ChatWebService] Error waiting for connection: $err");
         _socket = null;
+        _isGeneratingController.add(false);
       });
     }
+  }
+
+  void stopStream() {
+    debugPrint("[ChatWebService] Stopping active stream...");
+    try {
+      _socket?.close();
+    } catch (e) {
+      debugPrint("[ChatWebService] Error closing socket: $e");
+    }
+    _socket = null;
+    _connectionState = const Disconnected();
+    _isGeneratingController.add(false);
+  }
+
+  void finishGeneration() {
+    _isGeneratingController.add(false);
   }
 }
