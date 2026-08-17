@@ -82,6 +82,6 @@ async def chat_endpoint(body: ChatBody):
         body.query,
         search_results
     ):
-        response_chunks.append(chunk)
+     response_chunks.append(chunk)
 
     return {"response": "".join(response_chunks), "sources": search_results}
